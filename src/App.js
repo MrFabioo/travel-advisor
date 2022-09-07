@@ -8,26 +8,32 @@ import List from './components/List/List';
 import Map from './components/Map/Map';
 
 const App = () => {
+  const [type, setType] = useState('restaurants');
+
+  const [coords, setCoords] = useState({});
+  const [bounds, setBounds] = useState(null);
+
   const [places, setPlaces] = useState([]);
 
-  const [coordinates, setCoordinates] = useState({});
-  const [bounds, setBounds] = useState({}); // after setState its null
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       ({ coords: { latitude, longitude } }) => {
-        setCoordinates({ lat: latitude, lng: longitude });
+        setCoords({ lat: latitude, lng: longitude });
       }
     );
   }, []);
 
   useEffect(() => {
-    getPlacesData(bounds.sw, bounds.ne).then((data) => {
-      console.log(data);
+    if (bounds) {
+      setIsLoading(true);
 
-      setPlaces(data);
-    });
-  }, [bounds, coordinates]);
+      getPlacesData(type, bounds.sw, bounds.ne).then((data) => {
+        setPlaces(data);
+      });
+    }
+  }, [bounds, type]);
 
   return (
     <>
@@ -35,14 +41,10 @@ const App = () => {
       <Header />
       <Grid container spacing={3} style={{ width: '100%' }}>
         <Grid item xs={12} md={4}>
-          <List />
+          <List places={places} />
         </Grid>
         <Grid item xs={12} md={8}>
-          <Map
-            setCoordinates={setCoordinates}
-            setBounds={setBounds}
-            coordinates={coordinates}
-          />
+          <Map setCoords={setCoords} setBounds={setBounds} coords={coords} />
         </Grid>
       </Grid>
     </>
